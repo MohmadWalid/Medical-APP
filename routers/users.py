@@ -1,33 +1,28 @@
 """
 users.py
 
-This file defines the API endpoints related to user operations such as:
-- User registration
-- User login (authentication)
-- Fetching the currently logged-in user's profile
+Handles user-related API endpoints:
+- Register new users
+- Authenticate existing users (login)
+- Retrieve current authenticated user
 
-It uses:
-- Pydantic schemas (schemas.py) for input/output validation
-- SQLAlchemy models (models.py) for database interaction
-- Database session (database.py)
+Uses JWT for secure token-based authentication.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 
 from models import User
+from schemas import UserCreate, UserResponse, TokenResponse
 from database import SessionLocal
-from schemas import UserCreate, UserLogin, UserResponse, TokenResponse
+from utils.security import create_access_token, verify_token
 
-# ----------- Setup -----------
+router = APIRouter(prefix="/users", tags=["Users"])
 
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"]
-)
+# OAuth2 token extractor
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
-# Dependency to get a database session
+# Dependency to get DB session
 def get_db():
     db = SessionLocal()
     try:
@@ -35,52 +30,45 @@ def get_db():
     finally:
         db.close()
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Token management
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
-
-
-# ----------- Register Endpoint -----------
-
+# Register a new user
 @router.post("/register", response_model=UserResponse)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == user.email).first()
+def register(user_data: UserCreate, db: Session = Depends(get_db)):
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     new_user = User(
-        username=user.username,
-        email=user.email
+        username=user_data.username,
+        email=user_data.email
     )
-    new_user.set_password(user.password)
+    new_user.set_password(user_data.password)
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
     return new_user
 
 
-# ----------- Login Endpoint -----------
-
+# User login with JWT token response
 @router.post("/login", response_model=TokenResponse)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data.username).first()
     if not user or not user.verify_password(form_data.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # For now: Fake token (JWT to be added later)
-    token = f"fake-token-for-{user.username}"
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(data={"sub": user.username})
+    return TokenResponse(access_token=access_token)
 
 
-# ----------- Get Current User -----------
-
+# Get current user using token
 @router.get("/me", response_model=UserResponse)
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    # In real apps: decode JWT token and get user info
-    username = token.replace("fake-token-for-", "")
+    payload = verify_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    username = payload.get("sub")
     user = db.query(User).filter(User.username == username).first()
 
     if not user:
