@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from sqlalchemy import create_engine, Column, Integer, String, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from routers import users, reports, chatbot
 
-# Initialize FastAPI app
 app = FastAPI()
 
-
+# Register routers
+app.include_router(users.router)
+app.include_router(reports.router)
+app.include_router(chatbot.router)  
