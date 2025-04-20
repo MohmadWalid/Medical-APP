@@ -1,3 +1,5 @@
+#the database models, relationships, and the table creation logic
+
 from fastapi import FastAPI
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
