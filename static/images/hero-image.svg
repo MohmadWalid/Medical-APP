@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <style type="text/css">
+      @keyframes fadeInOut {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+    </style>
+  </defs>
+  <circle cx="200" cy="200" r="190" fill="#f0f9ff" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)" style="animation: float 6s infinite ease-in-out;"/>
+  <circle cx="200" cy="200" r="150" fill="#e0f2fe" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)" style="animation: float 6s infinite ease-in-out;"/>
+  <circle class="dot" cx="200" cy="70" r="6" fill="#0ea5e9" style="animation-duration: 3s; animation-iteration-count: infinite; animation-name: pulse; animation-timing-function: ease-in-out;" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)"/>
+  <circle class="dot" cx="200" cy="330" r="6" fill="#0ea5e9" style="animation-duration: 3s; animation-iteration-count: infinite; animation-name: pulse; animation-timing-function: ease-in-out;" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)"/>
+  <circle class="dot" cx="70" cy="200" r="6" fill="#0ea5e9" style="animation-duration: 3s; animation-iteration-count: infinite; animation-name: pulse; animation-timing-function: ease-in-out;" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)"/>
+  <circle class="dot" cx="330" cy="200" r="6" fill="#0ea5e9" style="animation-duration: 3s; animation-iteration-count: infinite; animation-name: pulse; animation-timing-function: ease-in-out;" transform="matrix(1.099709, 0, 0, 1.117202, 55.779576, 15.139535)"/>
+  <path style="stroke: rgb(64, 150, 255); fill: rgb(64, 150, 255); animation: fadeInOut 4s infinite ease-in-out;" transform="matrix(-0.49504938721656794, 0, 0, 0.49413442611694336, 607.7447636819056, -54.03765025028836)" d="M 468.992 485.4 A 216.4 216.4 0 1 1 468.992 701.8 A 158.35 158.35 0 1 0 468.992 485.4 Z" bx:shape="crescent 656.4 593.6 216.4 300 0.7 1@2823520d"/>
+</svg>

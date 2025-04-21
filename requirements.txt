@@ -1,0 +1,35 @@
+# Web Framework
+fastapi>=0.104.1,<0.105.0
+uvicorn[standard]>=0.24.0,<0.25.0
+
+# Database
+sqlalchemy>=2.0.23,<2.1.0
+alembic>=1.12.1,<1.13.0  # Database migrations
+
+# Data Validation & Serialization
+pydantic>=2.5.1,<2.6.0
+email-validator>=2.1.0,<2.2.0  # Email validation for Pydantic
+
+# Template Engine & Static Files
+jinja2>=3.1.2,<3.2.0
+aiofiles>=23.2.1,<23.3.0
+python-multipart>=0.0.6,<0.0.7  # Form data parsing
+
+# PDF Generation
+reportlab>=4.0.7,<4.1.0
+
+# Security & Authentication
+python-jose[cryptography]>=3.3.0,<3.4.0  # JWT tokens
+passlib[bcrypt]>=1.7.4,<1.8.0  # Password hashing
+python-dotenv>=1.0.0,<1.1.0  # Environment variables
+
+# Testing & Development
+pytest>=7.4.3,<7.5.0
+pytest-asyncio>=0.21.1,<0.22.0
+httpx>=0.25.1,<0.26.0  # Async HTTP client for testing
+black>=23.11.0,<23.12.0  # Code formatting
+flake8>=6.1.0,<6.2.0  # Code linting
+mypy>=1.7.0,<1.8.0  # Static type checking
+
+# Monitoring & Performance
+prometheus-fastapi-instrumentator>=6.1.0,<6.2.0  # Metrics for FastAPI

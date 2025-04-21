@@ -1,0 +1,211 @@
+/* Navigation and Sidebar Styles */
+.nav-link {
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #64748b;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: linear-gradient(to right, #4285f4, #3b7de9);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 3px;
+}
+
+.nav-link:hover {
+    color: #4285f4;
+    background: rgba(66, 133, 244, 0.08);
+    transform: translateY(-1px);
+}
+
+.nav-link:hover::before {
+    width: 24px;
+}
+
+.active .nav-link {
+    color: #4285f4;
+    background: rgba(66, 133, 244, 0.12);
+    font-weight: 600;
+}
+
+.active .nav-link::before {
+    width: 32px;
+}
+
+/* Page transition styles */
+.page-transition {
+    display: none;
+}
+
+.page-transitioning .main-content {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar-menu {
+    padding: 20px 0;
+    position: relative;
+}
+
+.sidebar-menu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, rgba(66, 133, 244, 0.05), rgba(66, 133, 244, 0.1), rgba(66, 133, 244, 0.05));
+    border-radius: 3px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 24px;
+    color: #64748b;
+    font-weight: 500;
+    border-radius: 16px;
+    margin: 4px 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+    transform-origin: left center;
+}
+
+.sidebar-link::before,
+.sidebar-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-link::before {
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 0;
+    background: linear-gradient(to bottom, #4285f4, #3b7de9);
+    border-radius: 2px;
+}
+
+.sidebar-link::after {
+    inset: 0;
+    background: linear-gradient(
+        to right,
+        rgba(66, 133, 244, 0.1),
+        rgba(66, 133, 244, 0.05)
+    );
+    opacity: 0;
+    transform: scaleX(0.8);
+}
+
+.sidebar-link i {
+    margin-right: 12px;
+    font-size: 18px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+    transform-origin: center;
+}
+
+.sidebar-link:hover {
+    color: #4285f4;
+    transform: translateX(8px) scale(1.02);
+}
+
+.sidebar-link:hover::before {
+    height: 24px;
+}
+
+.sidebar-link:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.sidebar-link:hover i {
+    transform: translateX(2px) scale(1.2);
+    color: #4285f4;
+}
+
+.sidebar-link.active {
+    color: #4285f4;
+    font-weight: 600;
+    transform: translateX(8px);
+    background: linear-gradient(
+        to right,
+        rgba(66, 133, 244, 0.15),
+        rgba(66, 133, 244, 0.05)
+    );
+}
+
+.sidebar-link.active::before {
+    height: 32px;
+}
+
+.sidebar-link.active::after {
+    opacity: 1;
+    transform: scaleX(1);
+    background: linear-gradient(
+        to right,
+        rgba(66, 133, 244, 0.15),
+        rgba(66, 133, 244, 0.08)
+    );
+}
+
+.sidebar-link.active i {
+    color: #4285f4;
+    transform: scale(1.2);
+}
+
+/* Logout button styling */
+.logout-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.logout-btn:hover::before {
+    opacity: 1;
+}
+
+.logout-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reports - MediScan</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script>
+        // Clear redirect flags
+        sessionStorage.removeItem('redirecting');
+        sessionStorage.removeItem('stayOnLogin');
+        
+        // Initialize Firebase with config
+        const firebaseConfig = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}",
+            measurementId: "{{ firebase_config.measurementId }}"
+        };
+        
+        // Initialize Firebase only if not already initialized
+        if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        // Debug info
+        console.log('Reports page loaded, pathname:', window.location.pathname);
+    </script>
+    
+    <!-- Include firebase utils and auth handler -->
+    <script src="/static/js/firebase-utils.js"></script>
+    <script src="/static/js/auth-handler.js"></script>
+    <script src="/static/js/reports.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-logo">MediScan</a>
+            <div class="navbar-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="/upload" class="nav-link">Upload Images</a></li>
+                <li class="active"><a href="/reports" class="nav-link">My Reports</a></li>
+                <li><a href="/chat" class="nav-link">Medical Chatbot</a></li>
+                <li><a href="/profile" class="nav-link">My Profile</a></li>
+                <li><button id="logout-btn" class="logout-btn">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard">
+        <div class="container">
+            <div class="dashboard-container">
+                <div class="sidebar">
+                    <ul class="sidebar-menu">
+                        <li><a href="/dashboard" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li><a href="/upload" class="sidebar-link"><i class="fas fa-upload"></i> Upload Images</a></li>
+                        <li><a href="/reports" class="sidebar-link active"><i class="fas fa-file-medical"></i> My Reports</a></li>
+                        <li><a href="/chat" class="sidebar-link"><i class="fas fa-robot"></i> Medical Chatbot</a></li>
+                        <li><a href="/profile" class="sidebar-link"><i class="fas fa-user"></i> My Profile</a></li>
+                    </ul>
+                </div>
+                <div class="main-content">
+                    <div class="dashboard-header">
+                        <h2>My Reports</h2>
+                    </div>
+                    
+                    <!-- Reports content here -->
+                    <div id="reports-container">
+                        <p>Loading your reports...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include scripts -->
+    <script src="/static/js/debug.js"></script>
+    <script src="/static/js/transitions.js"></script>
+</body>
+</html>
