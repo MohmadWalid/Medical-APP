@@ -4,74 +4,177 @@ users.py
 Handles user-related API endpoints:
 - Register new users
 - Authenticate existing users (login)
-- Retrieve current authenticated user
+- Manage user profiles (get, update, delete)
+- Handle user authentication and authorization
 
-Uses JWT for secure token-based authentication.
+Uses Firebase Authentication.
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from pydantic import BaseModel
+import firebase_admin
+from firebase_admin import credentials, auth
+from pathlib import Path
 
 from models import User
-from schemas import UserCreate, UserResponse, TokenResponse
-from database import SessionLocal
-from utils.security import create_access_token, verify_token
+from schemas import (
+    UserCreate,
+    UserResponse,
+    TokenResponse,
+    UserProfileUpdate,
+    MessageResponse
+)
+from database import get_db
+
+# Initialize Firebase Admin
+cred = credentials.Certificate(Path(__file__).parent.parent / "firebase-service-account.json")
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-# OAuth2 token extractor
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+class FirebaseToken(BaseModel):
+    token: str
 
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
+async def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+    """Get current user from Firebase token"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    token = auth_header.split(' ')[1]
     try:
-        yield db
-    finally:
-        db.close()
+        # Verify the Firebase token
+        decoded_token = auth.verify_id_token(token)
+        firebase_uid = decoded_token['uid']
+        
+        # Get or create user in our database
+        user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+        if not user:
+            # Create new user from Firebase data
+            user = User(
+                email=decoded_token.get('email'),
+                username=decoded_token.get('email').split('@')[0],  # Use email prefix as username
+                firebase_uid=firebase_uid,
+                is_active=True
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        return user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid authentication token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+async def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
+    """Check if current user is active"""
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Inactive user"
+        )
+    return current_user
 
 
-# Register a new user
-@router.post("/register", response_model=UserResponse)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+@router.post("/verify-token", response_model=TokenResponse)
+async def verify_token(
+    token_data: FirebaseToken,
+    db: Session = Depends(get_db)
+):
+    """Verify Firebase token and return user info"""
+    try:
+        # Verify the Firebase token
+        decoded_token = auth.verify_id_token(token_data.token)
+        firebase_uid = decoded_token['uid']
+        
+        # Get or create user in our database
+        user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+        if not user:
+            # Create new user from Firebase data
+            user = User(
+                email=decoded_token.get('email'),
+                username=decoded_token.get('email').split('@')[0],  # Use email prefix as username
+                firebase_uid=firebase_uid,
+                is_active=True
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        
+        return TokenResponse(
+            access_token=token_data.token,
+            expires_in=3600  # 1 hour
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    new_user = User(
-        username=user_data.username,
-        email=user_data.email
-    )
-    new_user.set_password(user_data.password)
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
-
-
-# User login with JWT token response
-@router.post("/login", response_model=TokenResponse)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not user.verify_password(form_data.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    access_token = create_access_token(data={"sub": user.username})
-    return TokenResponse(access_token=access_token)
-
-
-# Get current user using token
 @router.get("/me", response_model=UserResponse)
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    payload = verify_token(token)
-    if payload is None:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get current user profile"""
+    return current_user
 
-    username = payload.get("sub")
-    user = db.query(User).filter(User.username == username).first()
+@router.put("/me", response_model=UserResponse)
+async def update_user_profile(
+    profile_update: UserProfileUpdate,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Update current user profile"""
+    # Check if email is being updated and already exists
+    if profile_update.email and profile_update.email != current_user.email:
+        if db.query(User).filter(User.email == profile_update.email).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        current_user.email = profile_update.email
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    # Check if username is being updated and already exists
+    if profile_update.username and profile_update.username != current_user.username:
+        if db.query(User).filter(User.username == profile_update.username).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already taken"
+            )
+        current_user.username = profile_update.username
 
-    return user
+    try:
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not update profile"
+        )
+
+@router.delete("/me", response_model=MessageResponse)
+async def delete_user(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Delete current user account"""
+    try:
+        db.delete(current_user)
+        db.commit()
+        return MessageResponse(message="User account deleted successfully")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not delete user account"
+        )
