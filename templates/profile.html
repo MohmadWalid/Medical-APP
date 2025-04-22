@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile - MediScan</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -34,6 +35,301 @@
         }
     </script>
     
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 32px auto;
+            padding: 0 24px;
+            padding-top: 60px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 48px;
+            position: relative;
+        }
+
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, #4285f4, #3b7de9);
+            border-radius: 2px;
+        }
+
+        .profile-header h1 {
+            font-size: 32px;
+            color: #1a202c;
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .profile-header h1 i {
+            color: #4285f4;
+            font-size: 36px;
+        }
+
+        .profile-header p {
+            color: #64748b;
+            font-size: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .profile-header p i {
+            color: #4285f4;
+            font-size: 18px;
+        }
+
+        .profile-form {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow:
+                0 4px 20px rgba(66, 133, 244, 0.08),
+                0 0 0 1px rgba(66, 133, 244, 0.05);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #1a202c;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .form-group label i {
+            color: #4285f4;
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #1a202c;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        .profile-actions {
+            margin-top: 32px;
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .profile-actions button {
+            background: linear-gradient(135deg, #4285f4, #3b7de9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-actions button::before {
+            content: '\f0c7';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+        }
+
+        .profile-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 4px 12px rgba(66, 133, 244, 0.2),
+                0 0 0 2px rgba(66, 133, 244, 0.1);
+        }
+
+        .profile-preview {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow:
+                0 4px 20px rgba(66, 133, 244, 0.08),
+                0 0 0 1px rgba(66, 133, 244, 0.05);
+        }
+
+        .profile-preview h3 {
+            color: #1a202c;
+            font-size: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-preview h3 i {
+            color: #4285f4;
+            font-size: 20px;
+        }
+
+        .preview-item {
+            margin-bottom: 20px;
+        }
+
+        .preview-item strong {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-item strong i {
+            color: #4285f4;
+            font-size: 16px;
+        }
+
+        .preview-item span {
+            color: #1a202c;
+            font-size: 16px;
+            font-weight: 500;
+            padding-left: 24px;
+            display: block;
+            position: relative;
+        }
+
+        .preview-item span::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 16px;
+            height: 2px;
+            background: linear-gradient(to right, #4285f4, rgba(66, 133, 244, 0.2));
+            border-radius: 1px;
+        }
+
+        .medical-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 0 24px;
+        }
+
+        .medical-history-list li {
+            padding: 12px 16px;
+            background: linear-gradient(to right, #f8faff, #ffffff);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            color: #1a202c;
+            font-size: 15px;
+            border: 1px solid rgba(66, 133, 244, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .medical-history-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #4285f4, #3b7de9);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .medical-history-list li:hover {
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.08);
+        }
+
+        .medical-history-list li:hover::before {
+            opacity: 1;
+        }
+
+        .medical-history-list li i {
+            color: #4285f4;
+            font-size: 16px;
+        }
+
+        .medical-history-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                margin: 24px auto;
+                padding: 0 16px;
+            }
+
+            .profile-form,
+            .profile-preview {
+                padding: 24px;
+            }
+
+            .profile-header {
+                margin-bottom: 32px;
+            }
+
+            .profile-header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -44,11 +340,11 @@
                 <i class="fas fa-bars"></i>
             </div>
             <ul class="navbar-menu">
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/chat">Chat</a></li>
-                <li><a href="/upload">Upload</a></li>
-                <li><a href="/reports">Reports</a></li>
-                <li class="active"><a href="/profile">Profile</a></li>
+                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="/upload" class="nav-link">Upload Images</a></li>
+                <li><a href="/reports" class="nav-link">My Reports</a></li>
+                <li><a href="/chat" class="nav-link">Medical Chatbot</a></li>
+                <li class="active"><a href="/profile" class="nav-link">My Profile</a></li>
                 <li><button id="logout-btn" class="logout-btn">Logout</button></li>
             </ul>
         </div>
@@ -58,59 +354,60 @@
     <main class="main-content">
         <div class="profile-container">
             <div class="profile-header">
-                <h1>Your Profile</h1>
-                <p>Manage your personal and medical information</p>
+                <h1><i class="fas fa-user-circle"></i> Your Profile</h1>
+                <p><i class="fas fa-info-circle"></i> Manage your personal and medical information</p>
             </div>
             
             <form id="profile-form" class="profile-form">
                 <div class="form-group">
-                    <label for="name">Full Name</label>
+                    <label for="name"><i class="fas fa-user"></i> Full Name</label>
                     <input type="text" id="name" name="name" placeholder="Enter your full name" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="age">Age</label>
+                    <label for="age"><i class="fas fa-calendar-alt"></i> Age</label>
                     <input type="number" id="age" name="age" placeholder="Enter your age" min="0" max="120" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="medical-history">Medical History</label>
+                    <label for="medical-history"><i class="fas fa-notes-medical"></i> Medical History</label>
                     <textarea id="medical-history" name="medical_history" placeholder="Enter your medical history (one condition per line)"></textarea>
-                    <small>List each condition on a new line (e.g., Asthma, Diabetes, etc.)</small>
+                    <small><i class="fas fa-info-circle"></i> List each condition on a new line (e.g., Asthma, Diabetes, etc.)</small>
                 </div>
                 
                 <div class="profile-actions">
-                    <button type="submit">Save Profile</button>
+                    <button type="submit"><i class="fas"></i> Save Profile</button>
                 </div>
             </form>
             
             <div class="profile-preview">
-                <h3>Profile Preview</h3>
+                <h3><i class="fas fa-eye"></i> Profile Preview</h3>
                 
                 <div class="preview-item">
-                    <strong>Name:</strong>
+                    <strong><i class="fas fa-user"></i> Name</strong>
                     <span id="preview-name">Not set</span>
                 </div>
                 
                 <div class="preview-item">
-                    <strong>Age:</strong>
+                    <strong><i class="fas fa-calendar-alt"></i> Age</strong>
                     <span id="preview-age">Not set</span>
                 </div>
                 
                 <div class="preview-item">
-                    <strong>Medical History:</strong>
+                    <strong><i class="fas fa-notes-medical"></i> Medical History</strong>
                     <ul id="preview-medical-history" class="medical-history-list">
-                        <li>No medical history recorded</li>
+                        <li><i class="fas fa-info-circle"></i> No medical history recorded</li>
                     </ul>
                 </div>
             </div>
         </div>
     </main>
     
-    <!-- Include firebase utils and auth handler -->
+    <!-- Include scripts -->
     <script src="/static/js/firebase-utils.js"></script>
     <script src="/static/js/auth-handler.js"></script>
     <script src="/static/js/profile.js"></script>
     <script src="/static/js/navbar.js"></script>
+    <script src="/static/js/transitions.js"></script>
 </body>
 </html>
