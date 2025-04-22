@@ -1,18 +1,10 @@
 #the database models, relationships, and the table creation logic
 
-from fastapi import FastAPI
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Boolean
+from sqlalchemy.orm import relationship
 from passlib.context import CryptContext
-
-# Create SQLite database connection
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Base class for SQLAlchemy models
-Base = declarative_base()
+from database import Base
+from datetime import datetime
 
 # Create password hashing context (for password security)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -23,28 +15,40 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
-    password = Column(String) 
+    firebase_uid = Column(String, unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
 
-    # Method to set password (hash it before storing)
-    def set_password(self, password: str):
-        self.password = pwd_context.hash(password)
-
-    # Method to verify password
-    def verify_password(self, password: str):
-        return pwd_context.verify(password, self.password)
+    # Relationships
+    reports = relationship("MedicalReport", back_populates="user")
+    chat_history = relationship("ChatHistory", back_populates="user")
 
 # Define the MedicalReport model
 class MedicalReport(Base):
     __tablename__ = "reports"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey relationship
+    user_id = Column(Integer, ForeignKey('users.id'))
+    title = Column(String, index=True)
     report_data = Column(Text)
+    diagnosis = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationship to the User model
+    # Relationships
     user = relationship("User", back_populates="reports")
+    chat_messages = relationship("ChatHistory", back_populates="report")
 
-# Add the reverse relationship in the User model
-User.reports = relationship("MedicalReport", back_populates="user")
+# Define the ChatHistory model
+class ChatHistory(Base):
+    __tablename__ = "chat_history"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    report_id = Column(Integer, ForeignKey('reports.id'), nullable=True)
+    message = Column(Text)
+    response = Column(Text)
+    suggestions = Column(Text)  # Stored as JSON string
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-# Create the tables in the database
-Base.metadata.create_all(bind=engine)
+    # Relationships
+    user = relationship("User", back_populates="chat_history")
+    report = relationship("MedicalReport", back_populates="chat_messages")
