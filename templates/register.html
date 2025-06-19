@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - MediScan</title>
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -28,51 +29,297 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
     </script>
+
+    <style>
+        .register-container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #4285f4;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .role-option.selected {
+            border-color: #4285f4;
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+
+        .role-option i {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .role-option.selected i {
+            color: #4285f4;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-btn:hover {
+            background-color: #3367d6;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            color: #388e3c;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="/" class="navbar-logo">MediScan</a>
-            <div class="navbar-toggle">
-                <i class="fas fa-bars"></i>
+    <div class="register-container">
+        <h2>Create an Account</h2>
+        <div class="role-selector">
+            <div class="role-option" onclick="selectRole('patient')">
+                <i class="fas fa-user"></i>
+                <div>Patient</div>
             </div>
-            <ul class="navbar-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/login" class="btn-outline">Login</a></li>
-            </ul>
+            <div class="role-option" onclick="selectRole('doctor')">
+                <i class="fas fa-user-md"></i>
+                <div>Doctor</div>
+            </div>
         </div>
-    </nav>
-
-    <div class="auth-container">
-        <div class="auth-card">
-            <h2>Create an Account</h2>
-            <form id="register-form">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn" style="width: 100%;">Sign Up</button>
-            </form>
-            <div class="auth-footer">
-                <p>Already have an account? <a href="/login">Login</a></p>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
             </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" required>
+            </div>
+            <div id="doctorFields" style="display: none;">
+                <div class="form-group">
+                    <label for="specialization">Specialization</label>
+                    <input type="text" id="specialization">
+                </div>
+                <div class="form-group">
+                    <label for="license">Medical License Number</label>
+                    <input type="text" id="license">
+                </div>
+            </div>
+            <button type="submit" class="register-btn">Register</button>
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </form>
+        <div class="login-link">
+            Already have an account? <a href="/login">Login here</a>
         </div>
     </div>
 
-    <!-- Include auth.js for authentication handling -->
-    <script src="/static/js/auth.js"></script>
+    <script>
+        let selectedRole = 'patient';
+
+        function selectRole(role) {
+            selectedRole = role;
+            document.querySelectorAll('.role-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            const doctorFields = document.getElementById('doctorFields');
+            if (role === 'doctor') {
+                doctorFields.style.display = 'block';
+                document.getElementById('specialization').required = true;
+                document.getElementById('license').required = true;
+            } else {
+                doctorFields.style.display = 'none';
+                document.getElementById('specialization').required = false;
+                document.getElementById('license').required = false;
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const fullName = document.getElementById('fullName').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            // Clear previous messages
+            errorMessage.textContent = '';
+            successMessage.textContent = '';
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match';
+                return;
+            }
+
+            // Validate password strength
+            if (password.length < 6) {
+                errorMessage.textContent = 'Password must be at least 6 characters long';
+                return;
+            }
+
+            try {
+                // Create user in Firebase Auth
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                // Prepare user data
+                const userData = {
+                    email: email,
+                    username: email,
+                    firebase_uid: user.uid,
+                    role: selectedRole,
+                    is_active: true,
+                    full_name: fullName,
+                    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Add additional fields for doctors
+                if (selectedRole === 'doctor') {
+                    const specialization = document.getElementById('specialization').value;
+                    const license = document.getElementById('license').value;
+                    
+                    if (!specialization || !license) {
+                        errorMessage.textContent = 'Please fill in all required fields';
+                        return;
+                    }
+                    
+                    userData.specialization = specialization;
+                    userData.license = license;
+                }
+
+                // Store user data in Firestore
+                const db = firebase.firestore();
+                
+                try {
+                    await db.collection(selectedRole + 's').doc(user.uid).set(userData);
+                    
+                    successMessage.textContent = 'Registration successful! Redirecting...';
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (selectedRole === 'doctor') {
+                            window.location.href = '/doctor';
+                        } else {
+                            window.location.href = '/dashboard';
+                        }
+                    }, 2000);
+                } catch (firestoreError) {
+                    console.error('Firestore error:', firestoreError);
+                    // If Firestore fails, delete the auth user
+                    await user.delete();
+                    errorMessage.textContent = 'Error creating user profile. Please try again.';
+                }
+
+            } catch (error) {
+                console.error('Registration error:', error);
+                let errorMsg = 'An error occurred during registration. ';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMsg = 'This email is already registered. Please use a different email or login.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMsg = 'Please enter a valid email address.';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMsg = 'Email/password accounts are not enabled. Please contact support.';
+                        break;
+                    case 'auth/weak-password':
+                        errorMsg = 'Password is too weak. Please use a stronger password.';
+                        break;
+                    default:
+                        errorMsg += error.message;
+                }
+                
+                errorMessage.textContent = errorMsg;
+            }
+        }
+
+        // Initialize role selection
+        selectRole('patient');
+    </script>
 </body>
 </html>

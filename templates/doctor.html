@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - MediScan</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/navigation.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}",
+            measurementId: "{{ firebase_config.measurementId }}"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    
+    <style>
+        .doctor-dashboard {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+            height: calc(100vh - 80px);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 100px;
+            padding-bottom: 120px;
+        }
+
+        .patients-list {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+
+        .patients-list-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+
+        .patients-list-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .patients-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .patient-item {
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .patient-item:hover {
+            background: #f8f9fa;
+        }
+
+        .patient-item.active {
+            background: #e8f0fe;
+            border-left: 4px solid #4285f4;
+        }
+
+        .patient-item h4 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .patient-item p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .patient-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .patient-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .patient-details h4 {
+            margin: 0;
+            color: #333;
+        }
+
+        .patient-details p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #ffffff;
+            height: calc(100vh - 200px);
+            position: relative;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            animation: fadeIn 0.3s ease-in-out;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            word-wrap: break-word;
+            line-height: 1.4;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: fit-content;
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+            white-space: pre-wrap;
+            max-width: 100%;
+        }
+
+        .message-time {
+            font-size: 0.75em;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+            color: inherit;
+            flex-shrink: 0;
+        }
+
+        .message:last-child {
+            margin-bottom: 0;
+        }
+
+        .message.sent {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            margin-right: 0;
+            border-bottom-right-radius: 4px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-bottom-left-radius: 12px;
+            align-self: flex-end;
+        }
+
+        .message.received {
+            background: #f0f0f0;
+            color: #333;
+            margin-right: auto;
+            margin-left: 0;
+            border-bottom-left-radius: 4px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            align-self: flex-start;
+        }
+
+        .loading-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: white;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background: white;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .no-messages {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: white;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .small {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .chat-input-container {
+            padding: 0;
+            background: none;
+            border-top: none;
+            display: flex;
+            gap: 10px;
+        }
+
+        #message-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #message-input:focus {
+            border-color: #007bff;
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #send-button:hover {
+            background: #0056b3;
+        }
+
+        .chat-input {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            max-width: 1400px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            background: #ffffff;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            left: 50%;
+            transform: translateX(-50%);
+            box-sizing: border-box;
+            margin-bottom: 0;
+            height: 100px;
+        }
+
+        .chat-input textarea {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: none;
+            height: 40px;
+            min-height: 40px;
+            max-height: 120px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            overflow-y: auto;
+        }
+
+        .chat-input textarea:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1);
+        }
+
+        .chat-input button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .chat-input button:hover {
+            background-color: #3367d6;
+        }
+
+        .no-patient {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .no-patient i {
+            font-size: 48px;
+            margin-top: 200px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        .error-message {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        .error-message p {
+            margin: 5px 0;
+        }
+
+        .loading {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .doctor-dashboard {
+                grid-template-columns: 1fr;
+                height: auto;
+                min-height: calc(100vh - 80px);
+            }
+
+            .patients-list {
+                height: 300px;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        .notification.info {
+            background: #2196F3;
+        }
+
+        .patient-item.unread {
+            background: #e8f0fe;
+            border-left: 4px solid #4285f4;
+        }
+
+        .patient-item.unread h4::after {
+            content: '•';
+            color: #4285f4;
+            margin-left: 5px;
+        }
+
+        /* Chat container styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Chat messages area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Message styles */
+        .message {
+            max-width: 60%;
+            margin: 0 0 0 auto;
+            padding: 14px 18px;
+            border-radius: 18px;
+            word-break: break-word;
+            font-size: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+            display: flex;
+            flex-direction: column;
+            background: #007bff;
+            color: #fff;
+            align-self: flex-end;
+        }
+        .message.received {
+            background: #fff;
+            color: #222;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 18px;
+            border-top-right-radius: 18px;
+            border-top-left-radius: 18px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+        }
+        .message.sent {
+            background: #007bff;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+            border-bottom-left-radius: 18px;
+            border-top-right-radius: 18px;
+            border-top-left-radius: 18px;
+        }
+        .message-content {
+            padding: 0;
+            background: none;
+            box-shadow: none;
+        }
+        .message-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: inherit;
+            margin-bottom: 6px;
+        }
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            align-self: flex-end;
+            color: inherit;
+        }
+        /* Loading and error states */
+        .loading-message, .error-message, .no-messages {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: white;
+            border-radius: 8px;
+            margin: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .loading-message p, .error-message p {
+            margin: 5px 0;
+        }
+        .small {
+            font-size: 12px;
+            color: #888;
+        }
+        /* Chat input area */
+        .chat-input-container {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+        #message-input:focus {
+            border-color: #007bff;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #send-button:hover {
+            background: #0056b3;
+        }
+        /* Scrollbar styling */
+        #chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Page Transition Effects */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 9999;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page-transition.active {
+            transform: translateY(0);
+        }
+
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .page-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation Transition */
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(66, 133, 244, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::before {
+            transform: translateX(0);
+        }
+
+        .nav-link.active::before {
+            transform: translateX(0);
+            background: rgba(66, 133, 244, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-logo">MediScan</a>
+            <div class="navbar-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <ul class="navbar-menu">
+                <li class="active"><a href="/doctor" class="nav-link">Doctor Dashboard</a></li>
+                <li><a href="/profile" class="nav-link">My Profile</a></li>
+                <li><button id="logout-btn" class="logout-btn">Logout</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="doctor-dashboard">
+        <div id="notification" class="notification"></div>
+        <div class="patients-list">
+            <div class="patients-list-header">
+                <h3>My Patients</h3>
+            </div>
+            <div class="patients-container" id="patients-container">
+                <div class="loading">Loading patients...</div>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div id="chat-interface">
+                <div class="no-patient">
+                    <div>
+                        <i class="fas fa-user"></i>
+                        <p>Select a patient to start chatting</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPatientId = null;
+        let unsubscribeChat = null;
+        let lastMessageTimestamp = null;
+        let unreadPatients = new Set();
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        // Check if user is authenticated and is a doctor
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                console.log("User authenticated:", user.uid);
+                const db = firebase.firestore();
+                
+                // Get doctor's profile
+                db.collection('doctors').doc(user.uid).get()
+                    .then((doc) => {
+                        if (!doc.exists) {
+                            console.log("Doctor profile not found");
+                            // If not a doctor, redirect to patient dashboard
+                            window.location.href = '/dashboard';
+                        } else {
+                            console.log("Doctor profile found:", doc.data());
+                            loadPatients();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error checking doctor profile:", error);
+                        showNotification('Error checking doctor profile. Please try again.', 'error');
+                    });
+            } else {
+                console.log("No user authenticated");
+                window.location.href = '/login';
+            }
+        });
+
+        // Add logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/login';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+                showNotification('Error signing out. Please try again.', 'error');
+            });
+        });
+
+        function loadPatients() {
+            const db = firebase.firestore();
+            const currentUser = firebase.auth().currentUser;
+            const patientsContainer = document.getElementById('patients-container');
+
+            console.log("Loading patients for doctor:", currentUser.uid);
+
+            // Get all patients assigned to this doctor
+            db.collection('patients')
+                .where('doctorId', '==', currentUser.uid)
+                .get()
+                .then((snapshot) => {
+                    console.log("Found", snapshot.size, "patients");
+                    if (snapshot.empty) {
+                        patientsContainer.innerHTML = `
+                            <div class="no-patient">
+                                <div>
+                                    <i class="fas fa-user"></i>
+                                    <p>No patients assigned yet</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        patientsContainer.innerHTML = '';
+                        snapshot.forEach((doc) => {
+                            const patient = doc.data();
+                            const patientElement = createPatientElement(doc.id, patient);
+                            patientsContainer.appendChild(patientElement);
+                            
+                            // Check for unread messages
+                            checkUnreadMessages(doc.id);
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading patients:", error);
+                    patientsContainer.innerHTML = `
+                        <div class="error-message">
+                            <p>Error loading patients: ${error.message}</p>
+                        </div>
+                    `;
+                    showNotification('Error loading patients. Please try again.', 'error');
+                });
+        }
+
+        function checkUnreadMessages(patientId) {
+            const db = firebase.firestore();
+            const currentUser = firebase.auth().currentUser;
+
+            // Query to check for unread messages from this patient
+            db.collection('chats')
+                .where('patientId', '==', patientId)
+                .where('status', '==', 'unread')
+                .where('senderRole', '==', 'patient')
+                .orderBy('timestamp', 'asc')
+                .get()
+                .then((snapshot) => {
+                    if (!snapshot.empty) {
+                        unreadPatients.add(patientId);
+                        updatePatientUnreadStatus(patientId);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error checking unread messages:", error);
+                });
+        }
+
+        function updatePatientUnreadStatus(patientId) {
+            const patientElement = document.querySelector(`[data-patient-id="${patientId}"]`);
+            if (patientElement) {
+                patientElement.classList.add('unread');
+            }
+        }
+
+        function createPatientElement(patientId, patient) {
+            const div = document.createElement('div');
+            div.className = 'patient-item';
+            div.setAttribute('data-patient-id', patientId);
+            div.innerHTML = `
+                <h4>${patient.full_name || patient.email}</h4>
+                <p>${patient.email}</p>
+            `;
+            div.onclick = () => selectPatient(patientId, patient);
+            return div;
+        }
+
+        function selectPatient(patientId, patient) {
+            // Update active state
+            document.querySelectorAll('.patient-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+
+            currentPatientId = patientId;
+            updateChatInterface(patient);
+            loadChatMessages(patientId);
+        }
+
+        function updateChatInterface(patient) {
+            const chatInterface = document.getElementById('chat-interface');
+            if (!chatInterface) {
+                console.error('Chat interface container not found');
+                return;
+            }
+            
+            chatInterface.innerHTML = `
+                <div class="chat-header">
+                    <div class="patient-info">
+                        <div class="patient-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="patient-details">
+                            <h4>${patient.full_name || patient.email}</h4>
+                            <p>${patient.email}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+            `;
+            
+            // Initialize chat messages container
+            const chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) {
+                console.error('Failed to initialize chat messages container');
+                return;
+            }
+        }
+
+        function autoResizeTextarea(textarea) {
+            // Reset height to auto to get the correct scrollHeight
+            textarea.style.height = 'auto';
+            
+            // Set the height to scrollHeight to fit the content
+            const newHeight = Math.min(textarea.scrollHeight, 120);
+            textarea.style.height = newHeight + 'px';
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function renderMessage(message, currentUser) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+            
+            const time = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleTimeString() : '';
+            
+            messageElement.innerHTML = `
+                <div class="message-content">${message.text || ''}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            return messageElement;
+        }
+
+        function loadChatMessages(patientId) {
+            const db = firebase.firestore();
+            const currentUser = firebase.auth().currentUser;
+            const chatMessages = document.getElementById('chat-messages');
+            
+            if (!chatMessages) {
+                console.error('Chat messages container not found');
+                return;
+            }
+
+            console.log("Loading chat messages for patient:", patientId);
+
+            // Show loading state
+            chatMessages.innerHTML = `
+                <div class="loading-message">
+                    <p>Loading messages...</p>
+                    <p class="small">This may take a few moments while the chat system is being set up.</p>
+                </div>
+            `;
+
+            // Unsubscribe from previous listener if exists
+            if (unsubscribeChat) {
+                unsubscribeChat();
+            }
+
+            // Query to get messages for this patient
+            const query = db.collection('chats')
+                .where('patientId', '==', patientId)
+                .orderBy('timestamp', 'asc');
+
+            unsubscribeChat = query.onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    chatMessages.innerHTML = '<div class="no-messages">No messages yet</div>';
+                    return;
+                }
+
+                // Clear existing messages
+                chatMessages.innerHTML = '';
+                
+                // Create a document fragment for better performance
+                const fragment = document.createDocumentFragment();
+                
+                // Process messages in order
+                snapshot.forEach(doc => {
+                    const message = doc.data();
+                    const messageElement = renderMessage(message, currentUser);
+                    fragment.appendChild(messageElement);
+                    
+                    // Mark message as read if it's from patient and unread
+                    if (message.senderRole === 'patient' && message.status === 'unread') {
+                        doc.ref.update({
+                            status: 'read'
+                        }).catch(error => {
+                            console.error('Error marking message as read:', error);
+                        });
+                    }
+                });
+                
+                // Append all messages at once
+                chatMessages.appendChild(fragment);
+                
+                // Scroll to bottom after messages are loaded
+                scrollToBottom();
+            }, error => {
+                console.error('Error loading chat messages:', error);
+                
+                // Handle index building state
+                if (error.code === 'failed-precondition' || error.message.includes('index is currently building')) {
+                    chatMessages.innerHTML = `
+                        <div class="loading-message">
+                            <p>Setting up chat system...</p>
+                            <p class="small">The chat system is being configured. This may take a few minutes.</p>
+                            <p class="small">Please wait or try again in a few moments.</p>
+                        </div>
+                    `;
+                } else {
+                    chatMessages.innerHTML = `
+                        <div class="error-message">
+                            <p>Error loading messages</p>
+                            <p class="small">Please try again in a few moments</p>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            const selectedPatient = document.querySelector('.patient-item.active');
+            
+            if (!selectedPatient) {
+                showNotification('Please select a patient first', 'error');
+                return;
+            }
+            
+            if (!message) {
+                showNotification('Please enter a message', 'error');
+                return;
+            }
+
+            const patientId = selectedPatient.dataset.patientId;
+            const currentUser = firebase.auth().currentUser;
+            
+            if (!currentUser) {
+                showNotification('You must be logged in to send messages', 'error');
+                return;
+            }
+
+            const db = firebase.firestore();
+            
+            // Create the message object
+            const chatMessage = {
+                text: message,
+                senderId: currentUser.uid,
+                patientId: patientId,
+                participants: [currentUser.uid, patientId],
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                senderRole: 'doctor',
+                status: 'unread'
+            };
+
+            // Add the message to Firestore
+            db.collection('chats').add(chatMessage)
+                .then(() => {
+                    messageInput.value = '';
+                    showNotification('Message sent successfully', 'success');
+                    scrollToBottom();
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    showNotification('Error sending message. Please try again.', 'error');
+                });
+        }
+
+        // Add event listener for Enter key
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const messageInput = document.getElementById('message-input');
+                if (messageInput && document.activeElement === messageInput) {
+                    sendMessage();
+                }
+            }
+        });
+
+        // Add page transition handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create transition overlay
+            const transitionOverlay = document.createElement('div');
+            transitionOverlay.className = 'page-transition';
+            document.body.appendChild(transitionOverlay);
+
+            // Add active class to page content
+            const pageContent = document.querySelector('.doctor-dashboard');
+            if (pageContent) {
+                pageContent.classList.add('page-content');
+                setTimeout(() => {
+                    pageContent.classList.add('active');
+                }, 100);
+            }
+
+            // Handle navigation clicks
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (!this.classList.contains('active')) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        
+                        // Start exit animation
+                        if (pageContent) {
+                            pageContent.classList.remove('active');
+                        }
+                        transitionOverlay.classList.add('active');
+                        
+                        // Navigate after animation
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, 500);
+                    }
+                });
+            });
+
+            // Handle page load
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // Page is loaded from cache
+                    if (pageContent) {
+                        pageContent.classList.add('active');
+                    }
+                    transitionOverlay.classList.remove('active');
+                }
+            });
+
+            // Initialize transition on page load
+            if (pageContent) {
+                pageContent.classList.add('active');
+            }
+            transitionOverlay.classList.remove('active');
+        });
+    </script>
+    <div class="chat-input">
+        <textarea id="message-input" placeholder="Type your message..." rows="1" oninput="autoResizeTextarea(this)"></textarea>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</body>
+</html> 

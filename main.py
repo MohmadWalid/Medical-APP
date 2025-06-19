@@ -144,6 +144,15 @@ async def profile_page(request: Request):
         {"request": request, "firebase_config": get_firebase_config()}
     )
 
+# Doctor dashboard page endpoint
+@app.get("/doctor")
+async def doctor_page(request: Request):
+    """Render the doctor dashboard page"""
+    return templates.TemplateResponse(
+        "doctor.html",
+        {"request": request, "firebase_config": get_firebase_config()}
+    )
+
 # Register page endpoint
 @app.get("/register")
 async def register_page(request: Request):

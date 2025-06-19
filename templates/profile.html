@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Profile - MediScan</title>
+    <title>My Profile - MediScan</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <link rel="stylesheet" href="/static/css/navigation.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -15,9 +15,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <script>
-        // Clear redirect flags
-        sessionStorage.removeItem('redirecting');
-        
         // Initialize Firebase with config
         const firebaseConfig = {
             apiKey: "{{ firebase_config.apiKey }}",
@@ -29,78 +26,46 @@
             measurementId: "{{ firebase_config.measurementId }}"
         };
         
-        // Initialize Firebase only if not already initialized
-        if (!firebase.apps || !firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
     </script>
     
     <style>
         .profile-container {
             max-width: 800px;
-            margin: 32px auto;
+            margin: 40px auto;
             padding: 0 24px;
-            padding-top: 60px;
         }
 
         .profile-header {
             text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-        }
-
-        .profile-header::after {
-            content: '';
-            position: absolute;
-            bottom: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(to right, #4285f4, #3b7de9);
-            border-radius: 2px;
+            margin-bottom: 40px;
         }
 
         .profile-header h1 {
             font-size: 32px;
             color: #1a202c;
             margin-bottom: 12px;
-            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
         }
 
-        .profile-header h1 i {
-            color: #4285f4;
-            font-size: 36px;
-        }
-
         .profile-header p {
             color: #64748b;
             font-size: 16px;
-            max-width: 500px;
-            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
 
-        .profile-header p i {
-            color: #4285f4;
-            font-size: 18px;
-        }
-
         .profile-form {
             background: #ffffff;
             padding: 32px;
-            border-radius: 24px;
-            box-shadow:
-                0 4px 20px rgba(66, 133, 244, 0.08),
-                0 0 0 1px rgba(66, 133, 244, 0.05);
-            margin-bottom: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(66, 133, 244, 0.08);
         }
 
         .form-group {
@@ -108,206 +73,109 @@
         }
 
         .form-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: block;
             margin-bottom: 8px;
             color: #1a202c;
             font-weight: 500;
-            font-size: 15px;
-        }
-
-        .form-group label i {
-            color: #4285f4;
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             font-size: 15px;
-            color: #1a202c;
             transition: all 0.3s ease;
-            background: #ffffff;
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: #4285f4;
-            box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
         }
 
         .form-group textarea {
             min-height: 120px;
             resize: vertical;
-            line-height: 1.6;
-        }
-
-        .form-group small {
-            display: block;
-            margin-top: 8px;
-            color: #64748b;
-            font-size: 13px;
-            font-style: italic;
         }
 
         .profile-actions {
             margin-top: 32px;
-            display: flex;
-            justify-content: flex-end;
-            padding-top: 24px;
-            border-top: 1px solid #e2e8f0;
+            text-align: right;
         }
 
         .profile-actions button {
-            background: linear-gradient(135deg, #4285f4, #3b7de9);
+            background: #4285f4;
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 12px;
+            border-radius: 8px;
             font-weight: 500;
-            font-size: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .profile-actions button::before {
-            content: '\f0c7';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
+        .profile-actions button:hover {
+            background: #3367d6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.2);
         }
 
-        .profile-actions button:hover {
-            transform: translateY(-2px);
-            box-shadow:
-                0 4px 12px rgba(66, 133, 244, 0.2),
-                0 0 0 2px rgba(66, 133, 244, 0.1);
+        .doctor-fields {
+            display: none;
+        }
+
+        .doctor-fields.active {
+            display: block;
         }
 
         .profile-preview {
+            margin-top: 32px;
             background: #ffffff;
             padding: 32px;
-            border-radius: 24px;
-            box-shadow:
-                0 4px 20px rgba(66, 133, 244, 0.08),
-                0 0 0 1px rgba(66, 133, 244, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(66, 133, 244, 0.08);
         }
 
         .profile-preview h3 {
             color: #1a202c;
-            font-size: 20px;
             margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 600;
+            font-size: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .profile-preview h3 i {
-            color: #4285f4;
-            font-size: 20px;
         }
 
         .preview-item {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .preview-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
 
         .preview-item strong {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #64748b;
+            display: block;
+            color: #1a202c;
+            margin-bottom: 4px;
             font-size: 14px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .preview-item strong i {
-            color: #4285f4;
-            font-size: 16px;
         }
 
         .preview-item span {
-            color: #1a202c;
-            font-size: 16px;
-            font-weight: 500;
-            padding-left: 24px;
-            display: block;
-            position: relative;
-        }
-
-        .preview-item span::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            width: 16px;
-            height: 2px;
-            background: linear-gradient(to right, #4285f4, rgba(66, 133, 244, 0.2));
-            border-radius: 1px;
-        }
-
-        .medical-history-list {
-            list-style: none;
-            padding: 0;
-            margin: 8px 0 0 24px;
-        }
-
-        .medical-history-list li {
-            padding: 12px 16px;
-            background: linear-gradient(to right, #f8faff, #ffffff);
-            border-radius: 12px;
-            margin-bottom: 12px;
-            color: #1a202c;
+            color: #64748b;
             font-size: 15px;
-            border: 1px solid rgba(66, 133, 244, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .medical-history-list li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(to bottom, #4285f4, #3b7de9);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .medical-history-list li:hover {
-            transform: translateX(4px);
-            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.08);
-        }
-
-        .medical-history-list li:hover::before {
-            opacity: 1;
-        }
-
-        .medical-history-list li i {
-            color: #4285f4;
-            font-size: 16px;
-        }
-
-        .medical-history-list li:last-child {
-            margin-bottom: 0;
         }
 
         @media (max-width: 768px) {
@@ -329,6 +197,267 @@
                 font-size: 28px;
             }
         }
+
+        /* Navigation Animation Styles */
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-link {
+            position: relative;
+            color: #64748b;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #4285f4;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover {
+            color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+        }
+
+        .nav-link.active {
+            color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .nav-link.active::after {
+            width: 80%;
+        }
+
+        /* Page Transition Animations */
+        .main-content {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .profile-container {
+            animation: slideUp 0.5s ease;
+        }
+
+        .profile-form {
+            animation: slideIn 0.5s ease;
+        }
+
+        .profile-preview {
+            animation: slideIn 0.5s ease 0.2s backwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Form Field Animations */
+        .form-group {
+            transition: all 0.3s ease;
+        }
+
+        .form-group:focus-within {
+            transform: translateX(5px);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            transform: scale(1.01);
+        }
+
+        /* Button Animation */
+        .profile-actions button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .profile-actions button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .profile-actions button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Preview Item Animations */
+        .preview-item {
+            transition: all 0.3s ease;
+        }
+
+        .preview-item:hover {
+            transform: translateX(5px);
+            background: rgba(66, 133, 244, 0.05);
+            border-radius: 8px;
+            padding-left: 20px;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .loading:after {
+            content: " ";
+            display: block;
+            border-radius: 50%;
+            width: 0;
+            height: 0;
+            margin: 8px;
+            box-sizing: border-box;
+            border: 32px solid #4285f4;
+            border-color: #4285f4 transparent #4285f4 transparent;
+            animation: loading 1.2s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                transform: rotate(0);
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+            50% {
+                transform: rotate(180deg);
+                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Notification Animation */
+        .notification {
+            animation: slideDown 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Page Transition Effects */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 9999;
+            transform: translateY(100%);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .page-transition.active {
+            transform: translateY(0);
+        }
+
+        .page-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .page-content.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation Transition */
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(66, 133, 244, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::before {
+            transform: translateX(0);
+        }
+
+        .nav-link.active::before {
+            transform: translateX(0);
+            background: rgba(66, 133, 244, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -339,23 +468,17 @@
             <div class="navbar-toggle">
                 <i class="fas fa-bars"></i>
             </div>
-            <ul class="navbar-menu">
-                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-                <li><a href="/upload" class="nav-link">Upload Images</a></li>
-                <li><a href="/reports" class="nav-link">My Reports</a></li>
-                <li><a href="/chat" class="nav-link">Medical Chatbot</a></li>
-                <li class="active"><a href="/profile" class="nav-link">My Profile</a></li>
-                <li><button id="logout-btn" class="logout-btn">Logout</button></li>
+            <ul class="navbar-menu" id="navbar-menu">
+                <!-- Navigation items will be dynamically populated based on user role -->
             </ul>
         </div>
     </nav>
-    
-    <!-- Main Content -->
+
     <main class="main-content">
         <div class="profile-container">
             <div class="profile-header">
                 <h1><i class="fas fa-user-circle"></i> Your Profile</h1>
-                <p><i class="fas fa-info-circle"></i> Manage your personal and medical information</p>
+                <p><i class="fas fa-info-circle"></i> Manage your personal and professional information</p>
             </div>
             
             <form id="profile-form" class="profile-form">
@@ -365,49 +488,340 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="age"><i class="fas fa-calendar-alt"></i> Age</label>
-                    <input type="number" id="age" name="age" placeholder="Enter your age" min="0" max="120" required>
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" name="email" readonly>
                 </div>
-                
-                <div class="form-group">
-                    <label for="medical-history"><i class="fas fa-notes-medical"></i> Medical History</label>
-                    <textarea id="medical-history" name="medical_history" placeholder="Enter your medical history (one condition per line)"></textarea>
-                    <small><i class="fas fa-info-circle"></i> List each condition on a new line (e.g., Asthma, Diabetes, etc.)</small>
+
+                <div class="doctor-fields">
+                    <div class="form-group">
+                        <label for="specialization"><i class="fas fa-stethoscope"></i> Specialization</label>
+                        <input type="text" id="specialization" name="specialization" placeholder="Enter your medical specialization">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="license"><i class="fas fa-id-card"></i> Medical License Number</label>
+                        <input type="text" id="license" name="license" placeholder="Enter your medical license number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience"><i class="fas fa-briefcase"></i> Years of Experience</label>
+                        <input type="number" id="experience" name="experience" min="0" placeholder="Enter years of experience">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="qualifications"><i class="fas fa-graduation-cap"></i> Qualifications</label>
+                        <textarea id="qualifications" name="qualifications" placeholder="Enter your medical qualifications (one per line)"></textarea>
+                        <small><i class="fas fa-info-circle"></i> List each qualification on a new line</small>
+                    </div>
                 </div>
                 
                 <div class="profile-actions">
-                    <button type="submit"><i class="fas"></i> Save Profile</button>
+                    <button type="submit"><i class="fas fa-save"></i> Save Profile</button>
                 </div>
             </form>
             
             <div class="profile-preview">
                 <h3><i class="fas fa-eye"></i> Profile Preview</h3>
-                
-                <div class="preview-item">
-                    <strong><i class="fas fa-user"></i> Name</strong>
-                    <span id="preview-name">Not set</span>
-                </div>
-                
-                <div class="preview-item">
-                    <strong><i class="fas fa-calendar-alt"></i> Age</strong>
-                    <span id="preview-age">Not set</span>
-                </div>
-                
-                <div class="preview-item">
-                    <strong><i class="fas fa-notes-medical"></i> Medical History</strong>
-                    <ul id="preview-medical-history" class="medical-history-list">
-                        <li><i class="fas fa-info-circle"></i> No medical history recorded</li>
-                    </ul>
+                <div id="profile-preview-content">
+                    <p>Your profile information will appear here after saving.</p>
                 </div>
             </div>
         </div>
     </main>
-    
-    <!-- Include scripts -->
-    <script src="/static/js/firebase-utils.js"></script>
-    <script src="/static/js/auth-handler.js"></script>
-    <script src="/static/js/profile.js"></script>
-    <script src="/static/js/navbar.js"></script>
-    <script src="/static/js/transitions.js"></script>
+
+    <script>
+        // Check if user is authenticated and get their role
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                const db = firebase.firestore();
+                const navbarMenu = document.getElementById('navbar-menu');
+                
+                // Check if user is a doctor
+                db.collection('doctors').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            // User is a doctor - show doctor navigation
+                            navbarMenu.innerHTML = `
+                                <li><a href="/doctor" class="nav-link">Doctor Dashboard</a></li>
+                                <li class="active"><a href="/profile" class="nav-link">My Profile</a></li>
+                                <li><button id="logout-btn" class="logout-btn">Logout</button></li>
+                            `;
+                            loadDoctorProfile(user.uid);
+                        } else {
+                            // User is a patient - show patient navigation
+                            navbarMenu.innerHTML = `
+                                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                                <li><a href="/upload" class="nav-link">Upload Images</a></li>
+                                <li><a href="/reports" class="nav-link">My Reports</a></li>
+                                <li><a href="/chat" class="nav-link">Medical Chatbot</a></li>
+                                <li class="active"><a href="/profile" class="nav-link">My Profile</a></li>
+                                <li><button id="logout-btn" class="logout-btn">Logout</button></li>
+                            `;
+                            loadPatientProfile(user.uid);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error checking user role:", error);
+                    });
+            } else {
+                window.location.href = '/login';
+            }
+        });
+
+        function loadDoctorProfile(userId) {
+            const db = firebase.firestore();
+            const emailInput = document.getElementById('email');
+            
+            // Set email
+            firebase.auth().currentUser.email;
+            
+            // Load doctor profile
+            db.collection('doctors').doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('name').value = data.name || '';
+                        document.getElementById('specialization').value = data.specialization || '';
+                        document.getElementById('license').value = data.license || '';
+                        document.getElementById('experience').value = data.experience || '';
+                        document.getElementById('qualifications').value = data.qualifications || '';
+                        
+                        // Update preview
+                        updateDoctorPreview(data);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading doctor profile:", error);
+                });
+        }
+
+        function loadPatientProfile(userId) {
+            const db = firebase.firestore();
+            const emailInput = document.getElementById('email');
+            
+            // Set email
+            emailInput.value = firebase.auth().currentUser.email;
+            
+            // Load patient profile
+            db.collection('patients').doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        document.getElementById('name').value = data.name || '';
+                        
+                        // Update preview
+                        updatePatientPreview(data);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading patient profile:", error);
+                });
+        }
+
+        function updateDoctorPreview(data) {
+            const previewContent = document.getElementById('profile-preview-content');
+            previewContent.innerHTML = `
+                <div class="preview-item">
+                    <strong>Full Name</strong>
+                    <span>${data.name || 'Not set'}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Email</strong>
+                    <span>${firebase.auth().currentUser.email}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Specialization</strong>
+                    <span>${data.specialization || 'Not set'}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Medical License</strong>
+                    <span>${data.license || 'Not set'}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Experience</strong>
+                    <span>${data.experience ? data.experience + ' years' : 'Not set'}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Qualifications</strong>
+                    <span>${data.qualifications || 'Not set'}</span>
+                </div>
+            `;
+        }
+
+        function updatePatientPreview(data) {
+            const previewContent = document.getElementById('profile-preview-content');
+            previewContent.innerHTML = `
+                <div class="preview-item">
+                    <strong>Full Name</strong>
+                    <span>${data.name || 'Not set'}</span>
+                </div>
+                <div class="preview-item">
+                    <strong>Email</strong>
+                    <span>${firebase.auth().currentUser.email}</span>
+                </div>
+            `;
+        }
+
+        // Handle form submission
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                window.location.href = '/login';
+                return;
+            }
+
+            const db = firebase.firestore();
+            const formData = {
+                name: document.getElementById('name').value,
+                email: user.email
+            };
+
+            // Check if user is a doctor
+            db.collection('doctors').doc(user.uid).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        // Add doctor-specific fields
+                        formData.specialization = document.getElementById('specialization').value;
+                        formData.license = document.getElementById('license').value;
+                        formData.experience = document.getElementById('experience').value;
+                        formData.qualifications = document.getElementById('qualifications').value;
+                        
+                        // Update doctor profile
+                        return db.collection('doctors').doc(user.uid).update(formData);
+                    } else {
+                        // Update patient profile
+                        return db.collection('patients').doc(user.uid).update(formData);
+                    }
+                })
+                .then(() => {
+                    alert('Profile updated successfully!');
+                    // Reload profile
+                    if (formData.specialization) {
+                        updateDoctorPreview(formData);
+                    } else {
+                        updatePatientPreview(formData);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error updating profile:", error);
+                    alert('Error updating profile. Please try again.');
+                });
+        });
+
+        // Add logout functionality
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/login';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+            });
+        });
+
+        // Add page transition handling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create transition overlay
+            const transitionOverlay = document.createElement('div');
+            transitionOverlay.className = 'page-transition';
+            document.body.appendChild(transitionOverlay);
+
+            // Add active class to page content
+            const pageContent = document.querySelector('.main-content');
+            if (pageContent) {
+                pageContent.classList.add('page-content');
+                setTimeout(() => {
+                    pageContent.classList.add('active');
+                }, 100);
+            }
+
+            // Handle navigation clicks
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (!this.classList.contains('active')) {
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        
+                        // Start exit animation
+                        if (pageContent) {
+                            pageContent.classList.remove('active');
+                        }
+                        transitionOverlay.classList.add('active');
+                        
+                        // Navigate after animation
+                        setTimeout(() => {
+                            window.location.href = href;
+                        }, 500);
+                    }
+                });
+            });
+
+            // Handle page load
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    // Page is loaded from cache
+                    if (pageContent) {
+                        pageContent.classList.add('active');
+                    }
+                    transitionOverlay.classList.remove('active');
+                }
+            });
+
+            // Initialize transition on page load
+            if (pageContent) {
+                pageContent.classList.add('active');
+            }
+            transitionOverlay.classList.remove('active');
+        });
+
+        // Enhanced notification function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            // Remove existing animation classes
+            notification.classList.remove('slideDown', 'fadeOut');
+            
+            // Force reflow
+            void notification.offsetWidth;
+            
+            // Add animation classes
+            notification.classList.add('slideDown');
+            
+            setTimeout(() => {
+                notification.classList.add('fadeOut');
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 500);
+            }, 4000);
+        }
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add form field animations
+        document.querySelectorAll('.form-group input, .form-group textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            field.addEventListener('blur', function() {
+                this.parentElement.classList.remove('focused');
+            });
+        });
+    </script>
 </body>
 </html>
