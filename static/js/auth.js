@@ -49,10 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             try {
                 // Sign in user
-                await firebase.auth().signInWithEmailAndPassword(email, password);
+                const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
                 
-                // Redirect to dashboard
-                window.location.href = '/dashboard';
+                // Check user role in Firestore
+                const db = firebase.firestore();
+                const doctorDoc = await db.collection('doctors').doc(user.uid).get();
+                
+                if (doctorDoc.exists) {
+                    // User is a doctor, redirect to doctor dashboard
+                    window.location.href = '/doctor';
+                } else {
+                    // User is a patient, redirect to patient dashboard
+                    window.location.href = '/dashboard';
+                }
             } catch (error) {
                 console.error('Error during login:', error);
                 alert(error.message);
@@ -61,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check authentication state
-    firebase.auth().onAuthStateChanged((user) => {
+    firebase.auth().onAuthStateChanged(async (user) => {
         console.log('Auth state changed:', user ? `User: ${user.email}` : 'No user');
         
         // Get current path
@@ -69,13 +79,25 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (user) {
             // User is signed in
-            if (currentPath === '/login' || currentPath === '/register') {
-                // Redirect to dashboard if on auth pages
-                window.location.href = '/dashboard';
+            const db = firebase.firestore();
+            const doctorDoc = await db.collection('doctors').doc(user.uid).get();
+            
+            if (doctorDoc.exists) {
+                // User is a doctor
+                if (currentPath === '/login' || currentPath === '/register' || currentPath === '/dashboard') {
+                    // Redirect to doctor dashboard if on login, register, or patient dashboard
+                    window.location.href = '/doctor';
+                }
+            } else {
+                // User is a patient
+                if (currentPath === '/login' || currentPath === '/register' || currentPath === '/doctor') {
+                    // Redirect to patient dashboard if on login, register, or doctor dashboard
+                    window.location.href = '/dashboard';
+                }
             }
         } else {
             // No user is signed in
-            const protectedPages = ['/dashboard', '/upload', '/reports', '/chat', '/profile'];
+            const protectedPages = ['/dashboard', '/upload', '/reports', '/chat', '/profile', '/doctor'];
             if (protectedPages.includes(currentPath)) {
                 // Redirect to login if on protected pages
                 window.location.href = '/login';
