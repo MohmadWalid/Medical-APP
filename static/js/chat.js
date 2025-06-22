@@ -3,13 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('send-button');
     const chatMessages = document.getElementById('chat-messages');
     let isProcessing = false;
+    let messageHistory = [];
 
     // Function to add a message to the chat
     function addMessage(message, isUser = false) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+        // Detect error message
+        const isError = typeof message === 'string' && (message.startsWith('Error:') || message.startsWith('Sorry, I encountered an error') || message.startsWith('[BioGPT model not loaded]') || message.startsWith('[Error generating response'));
+        messageDiv.className = `message ${isUser ? 'user' : 'bot'}${isError ? ' error' : ''}`;
         messageDiv.innerHTML = `
-            <div class="message-content">
+            <div class="message-content${isError ? ' error-message' : ''}">
                 <p>${message}</p>
             </div>
         `;
@@ -46,26 +49,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to send message to backend
     async function sendMessage(message) {
         try {
-            const currentUser = firebase.auth().currentUser;
-            if (!currentUser) {
-                window.location.href = '/login';
-                return 'Redirecting to login...';
-            }
-            const idToken = await currentUser.getIdToken();
             const response = await fetch('/api/chatbot/chat', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     message: message,
-                    context_report_id: null // Can be updated later if report context is needed
+                    context_report_id: null, // Can be updated later if report context is needed
+                    history: messageHistory.length > 0 ? messageHistory.slice(-5) : null // Send last 5 user messages
                 })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to get response from chatbot');
+                const errorText = await response.text();
+                return `Error: ${errorText}`;
             }
 
             const data = await response.json();
@@ -85,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Add user message
             addMessage(message, true);
+            messageHistory.push(message); // Add to history
             
             // Show typing indicator
             addTypingIndicator();

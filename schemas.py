@@ -73,6 +73,7 @@ class ReportList(BaseModel):
 class ChatMessage(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
     context_report_id: Optional[int] = None
+    history: Optional[List[str]] = None  # List of previous messages for context
 
 class ChatResponse(BaseModel):
     message: str
