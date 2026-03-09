@@ -1,144 +1,74 @@
-<h1>Smart Medical Assistant</h1>
-
-An intelligent medical assistant platform built with FastAPI and a modern frontend, designed to allow users to upload medical images, interact with a chatbot, and view/download diagnostic reports.
-
-<h2>🚀 Features</h2>
-
--User Registration & Login (Token-based)
-
--Upload medical images for diagnosis
-
--Chatbot interface (text + optional image upload)
-
--PDF report generation and download
-
--User dashboard to view chat/report history
-
--Swagger (OpenAPI) documentation for backend endpoints
-
-<h2>⚙️ Backend: FastAPI</h2>
-
-<h3><b>Tech Stack:</b></h3>
-
--FastAPI
-
--PostgreSQL (or SQLite for dev)
-
--SQLAlchemy ORM
-
--JWT Authentication
-
--python-jose, python-multipart, passlib, etc.
-
-<h3><b>To run backend:</b></h3>
-
--Install dependencies:
-
--pip install -r requirements.txt
-
-<h3><b>Start the API server:</b></h3>
-
--uvicorn main:app --reload
-
-<h3><b>Access docs:</b></h3>
-
-http://127.0.0.1:8000/docs
-
-<h2>🌐 Frontend: Web App</h2>
-
-<h3><b>Tech Stack:</b></h3>
-
-HTML + CSS (Tailwind optional)
-
-Vanilla JS (or React if needed)
-
-Axios or fetch for API calls
-
-<h3><b>Pages:</b></h3>
-
-index.html → Home screen with options (Upload / Chatbot)
-
-chatbot.html → Chat interface with image upload
-
-dashboard.html → View previous chats and reports
-
-(Optional) upload.html → Image-only upload interface
-
-<h3><b>How to Run:</b></h3>
-
--Open index.html in your browser (or host using a local server like VSCode Live Server)
-
-Chatbot Example:
-
-User enters message and selects image
-
-JS script sends POST to /chatbot
-
-Displays AI response
-
-Optionally displays/downloads generated PDF
-
-📂 Project Structure
-
-.
-
-├── backend/
-
-│   ├── main.py
-
-│   ├── models/
-
-│   ├── routers/
-
-│   ├── auth/
-
-│   └── utils/
-
-├── frontend/
-
-│   ├── index.html
-
-│   ├── chatbot.html
-
-│   ├── dashboard.html
-
-│   ├── style.css
-
-│   └── script.js
-
-└── README.md
-
-<h2>🛠️ Installation Notes</h2>
-
-<h3><b>Backend dependencies (Python):</b></h3>
-
-pip install fastapi uvicorn sqlalchemy python-jose passlib[bcrypt] python-multipart
-
-Frontend runs in browser — no framework required unless using React.
-
-<h2>🧪 Testing Endpoints</h2>
-
-You can test backend endpoints using:
-
--Swagger UI → http://127.0.0.1:8000/docs
-
--Postman
-
--curl
-
--Your frontend
-
--All request examples are documented in the FastAPI auto-generated docs.
-
-<h2>✅ Future Ideas</h2>
-
--React-based frontend
-
--Full chat history with timestamps
-
--Admin panel
-
--Email PDF reports
-
--Deployment to Render / Vercel
-
+# Medical APP — Smart Medical Assistant
+
+A web-based medical assistant built with **FastAPI** + **Firebase** that lets patients upload medical images, chat with an AI assistant, and download diagnostic PDF reports.
+
+---
+
+## What I Learned
+
+- **FastAPI** — building a REST API with async endpoints, routers, dependency injection, and auto-generated Swagger docs
+- **SQLAlchemy ORM** — defining models (`User`, `MedicalReport`, `ChatHistory`), relationships, and querying a database without raw SQL
+- **JWT Authentication** — securing endpoints with token-based auth using `python-jose` and `passlib`
+- **Firebase Integration** — using Firebase Auth for user login/registration on the frontend
+- **Jinja2 Templates** — serving HTML pages directly from FastAPI
+- **PDF Generation** — creating downloadable medical reports with `reportlab`
+- **Project Structure** — organizing a backend into routers, models, schemas, utils
+- **CORS & Middleware** — configuring cross-origin requests for a web frontend
+- **External API calls** — connecting to an AI chatbot service via HTTP requests
+
+---
+
+## Features
+
+- 🔐 User registration & login (JWT + Firebase)
+- 🖼️ Upload medical images for AI analysis
+- 🤖 AI Chatbot — ask medical questions, get responses
+- 📄 PDF report generation & download
+- 📊 Dashboard — view full chat and report history
+- 👨‍⚕️ Doctor dashboard view
+- 📖 Swagger UI at `/docs`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI · Uvicorn |
+| Database | SQLite · SQLAlchemy |
+| Auth | JWT (`python-jose`) · Firebase Auth |
+| Frontend | HTML · CSS · Vanilla JS |
+| PDF | ReportLab |
+| AI | External chatbot API |
+
+---
+
+## Run Locally
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Open **http://localhost:8000** — API docs at **http://localhost:8000/docs**
+
+---
+
+## Project Structure
+
+```
+├── main.py              # App entry point, routes, middleware
+├── models.py            # SQLAlchemy models (User, Report, Chat)
+├── schemas.py           # Pydantic request/response schemas
+├── database.py          # DB connection & session
+├── requirements.txt
+├── routers/
+│   ├── users.py         # Auth endpoints (register, login, JWT)
+│   ├── reports.py       # Medical report CRUD
+│   └── chatbot.py       # AI chat endpoint
+├── utils/
+│   ├── security.py      # Password hashing & JWT helpers
+│   └── pdf_generator.py # PDF report builder
+├── templates/           # Jinja2 HTML pages
+└── static/              # CSS, JS, images
+```
